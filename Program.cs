@@ -62,18 +62,18 @@ public DateTime ProcessedAt { get; set; }
 
 
 // Immutable by design — the logging pipeline cannot corrupt this
-public record EnrollmentRecord(string StudentId, string CourseCode, DateTime EnrolledAt);
-var enrollment = new EnrollmentRecord("STU-001", "CS-401", DateTime.UtcNow);
-Console.WriteLine(enrollment);
-// Try to mutate it — uncomment this line and see the compiler error:
-// enrollment.CourseCode = "HACKED"; // ERROR: init-only property
-// Non-destructive copy — creates a NEW record with one field changed
-var corrected = enrollment with { CourseCode = "CS-402" };
-Console.WriteLine(corrected);
-// Value equality — two records with the same data are equal
+// public record EnrollmentRecord(string StudentId, string CourseCode, DateTime EnrolledAt);
+// var enrollment = new EnrollmentRecord("STU-001", "CS-401", DateTime.UtcNow);
+// Console.WriteLine(enrollment);
+// // Try to mutate it — uncomment this line and see the compiler error:
+// // enrollment.CourseCode = "HACKED"; // ERROR: init-only property
+// // Non-destructive copy — creates a NEW record with one field changed
+// var corrected = enrollment with { CourseCode = "CS-402" };
+// Console.WriteLine(corrected);
+// // Value equality — two records with the same data are equal
 
-var duplicate = new EnrollmentRecord("STU-001", "CS-401", enrollment.EnrolledAt);
-Console.WriteLine($"Same data? {enrollment == duplicate}"); // True
+// var duplicate = new EnrollmentRecord("STU-001", "CS-401", enrollment.EnrolledAt);
+// Console.WriteLine($"Same data? {enrollment == duplicate}"); // True
 
 
 
@@ -95,6 +95,47 @@ Console.WriteLine($"Same data? {enrollment == duplicate}"); // True
 // }
 
 
+var course = new Course { Code = "CS-401", Title = "Advanced C#", Capacity = 30 };
+Console.WriteLine($"Course: {course.Title} (Capacity: {course.Capacity})");
+// Invalid capacity — should throw
+try
+{
+
+course.Capacity = -5;
+}
+catch (ArgumentOutOfRangeException ex)
+{
+Console.WriteLine($"Caught: {ex.Message}");
+}
+// Invalid title — should throw
+try
+{
+course.Title = "";
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"Caught: {ex.Message}");
+}
 
 
+var s = new Student { Id = "S1", Name = "Abeba", Age = 20, GPA = 3.8m };
+Console.WriteLine($"Student: {s.Name}, GPA: {s.GPA}");
+
+
+
+
+void PrintGradeReport(IEnumerable<IGradable> assessments)
+{
+Console.WriteLine("--- Grade Report ---");
+foreach (var item in assessments)
+{
+Console.WriteLine($"{item.Title}: {item.CalculateGrade():F2}%");
+}
+}
+// Test it — one array holds two completely different types
+IGradable[] cohortAssessments = [
+new Quiz { Title = "C# Basics", CorrectAnswers = 18, TotalQuestions = 20 },
+new LabAssignment { Title = "Registration API", FunctionalityScore = 90m, CodeQualityScore = 85m }
+];
+PrintGradeReport(cohortAssessments);
 
