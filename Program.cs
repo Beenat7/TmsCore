@@ -1,5 +1,7 @@
 ﻿//module-1-session-1
 using System;
+using System.Collections.Generic;
+using System.Linq;
 //Null Safety in modern c#
 //Because <Nullable>enable</Nullable> is turned on the compiler expects every normal string to contain actual text.
 //string region = null; // Compiler warning CS8600
@@ -147,7 +149,7 @@ PrintGradeReport(cohortAssessments);
 
 //module-1-session-2
 
-
+//Exercise 5
 var service = new EnrollmentService();
 
 // Test 1: Valid registration
@@ -177,6 +179,70 @@ catch (InvalidOperationException ex)
 {
     Console.WriteLine($"Business rule: {ex.Message}");
 }
+
+
+
+
+
+
+//Exercise 5
+Console.WriteLine("\n=== Running Exercise 5: Analytics Dashboard ===");
+
+// Step 1: Create Student Data using C# 12 Collection Expressions
+List<Student> students = [
+    new Student { Id = "S1", Name = "Abeba", Age = 22, GPA = 3.8m },
+    new Student { Id = "S2", Name = "Kidane", Age = 21, GPA = 2.4m },
+    new Student { Id = "S3", Name = "Dawit", Age = 20, GPA = 3.1m },
+    new Student { Id = "S4", Name = "Sara", Age = 23, GPA = 3.9m },
+    new Student { Id = "S5", Name = "Frehiwot", Age = 19, GPA = 2.0m },
+    new Student { Id = "S6", Name = "Yonas", Age = 24, GPA = 3.5m },
+    new Student { Id = "S7", Name = "Meron", Age = 22, GPA = 1.8m },
+    new Student { Id = "S8", Name = "Tesfaye", Age = 21, GPA = 2.9m }
+];
+
+// Step 2: Build the Honors Leaderboard (Chained LINQ Queries)
+List<string> leaderboard = students
+    .Where(s => s.GPA >= 3.5m)                // TODO 1: Extract Honors
+    .OrderByDescending(s => s.GPA)            // TODO 2: Sort by descending rank
+    .Select(s => s.Name)                      // TODO 3: Project only the Name string
+    .ToList();                                // TODO 4: Materialize the query instantly
+
+Console.WriteLine($"Found {leaderboard.Count} Honors Students:");
+foreach (var name in leaderboard)
+{
+    Console.WriteLine($"- {name}");
+}
+
+// Step 3: Class Average
+decimal averageGpa = students.Average(s => s.GPA); // TODO 5: Calculate Average
+Console.WriteLine($"\nClass Average GPA: {averageGpa:F2}");
+
+// Step 4: Group by Academic Standing using GroupBy and Switch Expressions
+var standingGroups = students.GroupBy(s => s.GPA switch
+{
+    >= 3.5m => "Honors",
+    >= 2.5m => "Good Standing",
+    >= 2.0m => "Probation",
+    _ => "Academic Warning" // TODO 6: Cover fallback classification arm
+});
+
+Console.WriteLine("\n--- Academic Standing Report ---");
+foreach (var group in standingGroups)
+{
+    Console.WriteLine($"\n{group.Key} ({group.Count()}):");
+    foreach (var s in group)
+    {
+        Console.WriteLine($"  {s.Name} GPA: {s.GPA}");
+    }
+}
+
+// Step 5: Collection Expressions with the Spread Operator
+string[] backendCourses = ["C#", "ASP.NET Core"];
+string[] frontendCourses = ["TypeScript", "Angular"];
+
+// TODO 7: Combine elements seamlessly using the modern spread mechanics (..)
+string[] allCourses = [.. backendCourses, .. frontendCourses, "Capstone"]; 
+Console.WriteLine($"\nFull curriculum: {string.Join(", ", allCourses)}");
 
 
 
