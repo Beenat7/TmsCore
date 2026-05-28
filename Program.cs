@@ -1,4 +1,6 @@
-﻿//Null Safety in modern c#
+﻿//module-1-session-1
+using System;
+//Null Safety in modern c#
 //Because <Nullable>enable</Nullable> is turned on the compiler expects every normal string to contain actual text.
 //string region = null; // Compiler warning CS8600
 //Console.WriteLine(region.ToUpper()); //  Compiler warning CS8602
@@ -138,4 +140,45 @@ new Quiz { Title = "C# Basics", CorrectAnswers = 18, TotalQuestions = 20 },
 new LabAssignment { Title = "Registration API", FunctionalityScore = 90m, CodeQualityScore = 85m }
 ];
 PrintGradeReport(cohortAssessments);
+
+
+
+
+
+//module-1-session-2
+
+
+var service = new EnrollmentService();
+
+// Test 1: Valid registration
+var validStudent = new Student { Id = "S1", Name = "Abeba", Age = 20, GPA = 3.8m };
+var validCourse = new Course { Code = "CS-401", Title = "Advanced C#", Capacity = 30 };
+var result = service.ProcessRegistration(validStudent, validCourse);
+Console.WriteLine($"Enrolled: {result.StudentId} in {result.CourseCode}");
+
+// Test 2: Null student should throw
+try
+{
+    service.ProcessRegistration(null, validCourse);
+}
+catch (ArgumentNullException ex)
+{
+    Console.WriteLine($"Guard caught: {ex.ParamName}");
+}
+
+// Test 3: Full course should throw
+var fullCourse = new Course { Code = "CS-402", Title = "Full Course", Capacity = 1 };
+fullCourse.EnrolledCount = 1;
+try
+{
+    service.ProcessRegistration(validStudent, fullCourse);
+}
+catch (InvalidOperationException ex)
+{
+    Console.WriteLine($"Business rule: {ex.Message}");
+}
+
+
+
+
 
