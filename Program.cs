@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 //Null Safety in modern c#
 //Because <Nullable>enable</Nullable> is turned on the compiler expects every normal string to contain actual text.
 //string region = null; // Compiler warning CS8600
@@ -54,12 +55,12 @@ Console.WriteLine($"Total allocated (formatted): {totalAllocation:F2}");
 
 
 // Legacy implementation — what the logging service did to the data
-public class Enrollment
-{
-public string StudentId { get; set; } = string.Empty;
-public string CourseCode { get; set; } = string.Empty;
-public DateTime ProcessedAt { get; set; }
-}
+// public class Enrollment
+// {
+// public string StudentId { get; set; } = string.Empty;
+// public string CourseCode { get; set; } = string.Empty;
+// public DateTime ProcessedAt { get; set; }
+// }
 // Somewhere in the logging pipeline:
 // enrollment.CourseCode = null; // ← No compiler error. Data silently corrupted.
 
@@ -230,9 +231,9 @@ Console.WriteLine("\n--- Academic Standing Report ---");
 foreach (var group in standingGroups)
 {
     Console.WriteLine($"\n{group.Key} ({group.Count()}):");
-    foreach (var s in group)
+    foreach (var student in group)
     {
-        Console.WriteLine($"  {s.Name} GPA: {s.GPA}");
+        Console.WriteLine($"  {student.Name} GPA: {student.GPA}");
     }
 }
 
@@ -243,6 +244,104 @@ string[] frontendCourses = ["TypeScript", "Angular"];
 // TODO 7: Combine elements seamlessly using the modern spread mechanics (..)
 string[] allCourses = [.. backendCourses, .. frontendCourses, "Capstone"]; 
 Console.WriteLine($"\nFull curriculum: {string.Join(", ", allCourses)}");
+
+
+
+
+//module-1-session-3 
+
+// THE WRONG WAY: Blocking with Thread.Sleep
+var sw = Stopwatch.StartNew();
+for (int i = 0; i < 5; i++)
+{
+Thread.Sleep(300); // Thread is HELD for 300ms cannot serve anyone else
+}
+Console.WriteLine($"Blocking sequential: {sw.ElapsedMilliseconds}ms");
+// ASYNC BUT STILL SEQUENTIAL: Thread released, but calls are one-at-a-time
+sw.Restart();
+for (int i = 0; i < 5; i++)
+{
+await Task.Delay(300); // Thread released while waiting but still sequential
+}
+Console.WriteLine($"Async sequential: {sw.ElapsedMilliseconds}ms");
+// THE RIGHT WAY: Async parallel all 5 start simultaneously
+sw.Restart();
+var tasks = Enumerable.Range(0, 5).Select(_ => Task.Delay(300));
+await Task.WhenAll(tasks);
+Console.WriteLine($"Async parallel: {sw.ElapsedMilliseconds}ms");
+
+
+
+async Task<Student> FetchStudentAsync(string id)
+{
+Console.WriteLine($" Fetching {id}...");
+await Task.Delay(300); // Simulate database latency
+return new Student
+{
+Id = id,
+Name = $"Student-{id}",
+Age = 20,
+GPA = id switch
+{
+"S1" => 3.8m,
+"S2" => 2.4m,
+"S3" => 3.5m,
+"S4" => 1.9m,
+"S5" => 3.2m,
+_ => 2.5m
+}
+};
+}
+
+async Task<Course> FetchCourseAsync(string code)
+{
+Console.WriteLine($" Fetching course {code}...");
+await Task.Delay(200); // Simulate database latency
+return new Course
+{
+Code = code,
+Title = $"Course-{code}",
+Capacity = code switch
+{
+"CRS-101" => 2,
+"CRS-201" => 30,
+"CRS-301" => 15,
+_ => 25
+}
+};
+}
+sw.Restart();
+// Start all fetches simultaneously: students AND courses
+string[] studentIds = ["S1", "S2", "S3", "S4", "S5"];
+string[] courseCodes = ["CRS-101", "CRS-201", "CRS-301"];
+
+var studentTasks = studentIds.Select(id => FetchStudentAsync(id));
+var courseTasks = courseCodes.Select(code => FetchCourseAsync(code));
+
+// FIX: Renamed variables to 'asyncStudents' and 'asyncCourses' to prevent naming collisions
+Student[] asyncStudents = await Task.WhenAll(studentTasks);
+Course[] asyncCourses = await Task.WhenAll(courseTasks);
+
+// FIX: Using .Length on the new array cleanly
+Console.WriteLine($"\nLoaded {asyncStudents.Length} students and {asyncCourses.Length} courses in {sw.ElapsedMilliseconds}ms");
+
+// FIX: Changed loop variable from 's' to 'studentItem' to completely bypass the scope conflict
+foreach (var studentItem in asyncStudents)
+{
+    Console.WriteLine($" {studentItem.Name} GPA: {studentItem.GPA}");
+}
+async Task SendConfirmationAsync(Student student)
+{
+    try
+    {
+        await Task.Delay(100); // Background mailing latency simulation
+        Console.WriteLine($"  [Background] Email sent successfully to {student.Name}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"  [Background] Email failed for {student.Name}: {ex.Message}");
+    }
+}
 
 
 

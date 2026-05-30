@@ -1,3 +1,8 @@
+using System;
+
+// 1. ADD THIS RECORD LINE RIGHT HERE AT THE TOP SO ENROLLMENTSERVICE CAN SEE IT:
+public record EnrollmentRecord(string StudentId, string CourseCode, DateTime EnrolledAt);
+
 public class Course
 {
 public required string Code { get; init; }
