@@ -11,8 +11,12 @@ public class EnrollmentService
         if (course is null) 
             throw new ArgumentNullException(nameof(course));
 
-        if (course.Capacity - course.EnrolledCount <= 0)
-            throw new InvalidOperationException("System constraint: Course capacity is full.");
+        // if (course.Capacity - course.EnrolledCount <= 0)
+        //     throw new InvalidOperationException("System constraint: Course capacity is full.");
+
+        // Use custom domain exception
+        if (course.EnrolledCount >= course.Capacity)
+            throw new CapacityReachedException(course.Code);
 
         // TODO 2: Switch Expression for Academic Standing
         string standing = student.GPA switch
@@ -25,11 +29,21 @@ public class EnrollmentService
         Console.WriteLine($"{student.Name} is in {standing}.");
 
         // Increment enrolled count as a business rule tracking update
-        course.EnrolledCount++;
+        //course.EnrolledCount++;
 
         // TODO 3: Return materialized record
         return new EnrollmentRecord(student.Id, course.Code, DateTime.UtcNow);
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
